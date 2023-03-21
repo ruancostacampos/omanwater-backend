@@ -1,0 +1,19 @@
+{
+  "name": "omanwater-backend",
+  "version": "1.0.0",
+  "description": "Backend for a ONG Website.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruancostacampos/omanwater-backend.git"
+  },
+  "author": "Ruan Costa Campos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ruancostacampos/omanwater-backend/issues"
+  },
+  "homepage": "https://github.com/ruancostacampos/omanwater-backend#readme"
+}
