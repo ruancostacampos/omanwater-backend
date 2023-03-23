@@ -19,21 +19,6 @@ app.get('/', (req, res) => {
 
 })
 
-// Private Route
-app.get('/user/:id', async (req, res) => {
-    
-    const id = req.params.id
-
-    const user = await User.findById(id, '-password')
-
-    if(!user){
-        return res.status(404).json({message: 'User not found.'})
-    }
-
-    return res.status(200).json({user})
-
-})
-
 
 // Credentials
 const dbUser = process.env.DB_USERNAME
