@@ -17,7 +17,7 @@ function authenticateToken(req, res, next){
 
     try{
         
-        const secret = process.env.SECRET
+        const secret = process.env.TOKEN_SECRET
         decodedToken = jwt.verify(token, secret)
         console.log(decodedToken.id)
 

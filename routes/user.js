@@ -5,6 +5,9 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authenticateToken = require('../middlewares/authenticate-jwt')
 
+const expireSessionTokenTime = '30s'
+const expireRefreshTokenTime = '2m'
+
 // Register User
 router.post('/register', async(req, res) => {
 
@@ -82,14 +85,20 @@ router.post('/login', async (req, res) => {
 
     try{
         
-       const secret = process.env.SECRET
+       const secret = process.env.TOKEN_SECRET
+       const refreshSecret = process.env.REFRESH_SECRET
 
        const token = jwt.sign({
          id: user._id,
          super: user.super
-       }, secret, {expiresIn: '30s'})
+       }, secret, {expiresIn: expireSessionTokenTime})
 
-       res.status(200).json({message: 'Sucessful', token})
+       const refreshToken = jwt.sign({
+        id: user._id,
+        super: user.super
+      }, refreshSecret, {expiresIn: expireRefreshTokenTime})
+
+       res.status(200).json({message: 'Sucessful', token, refreshToken})
 
     }catch(err){
 
@@ -97,6 +106,26 @@ router.post('/login', async (req, res) => {
         res.status(500).json({message: 'Request problem, try again later.'})
 
     }
+
+})
+
+router.post('/refresh', (req, res) => {
+
+    const refreshToken = req.body.refreshToken
+    
+    if(!refreshToken) return res.status(401).json({message: "Session problem."}) 
+
+    refreshSecret = process.env.REFRESH_SECRET
+    tokenSecret = process.env.TOKEN_SECRET
+
+    jwt.verify(refreshToken, refreshSecret, (err, user) => {
+        
+        if(err) return res.status(403).json({message: "Error while refreshing your token."})
+
+        const token = jwt.sign({id: user.id, super: user.super}, tokenSecret, {expiresIn: expireSessionTokenTime})
+        return res.status(201).json({message: "Token refreshed.", token})
+        
+    })
 
 })
 
