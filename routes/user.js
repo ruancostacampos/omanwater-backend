@@ -4,12 +4,13 @@ const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authenticateToken = require('../middlewares/authenticate-jwt')
+const isAdmin = require('../middlewares/isAdmin')
 
 const expireSessionTokenTime = '30s'
 const expireRefreshTokenTime = '2m'
 
 // Register User
-router.post('/register', async(req, res) => {
+router.post('/register', authenticateToken, isAdmin, async(req, res) => {
 
     const {name, email, password, confirmPassword} = req.body
 
@@ -90,6 +91,7 @@ router.post('/login', async (req, res) => {
 
        const token = jwt.sign({
          id: user._id,
+         email: user.email,
          super: user.super
        }, secret, {expiresIn: expireSessionTokenTime})
 
@@ -138,6 +140,52 @@ router.get('/private', authenticateToken, (req, res) => {
             super: `${req.super}`
         }
     )
+})
+
+router.put('/password', authenticateToken, async (req, res) => {
+    
+    const password = req.body.password
+    const uid = req.uid
+
+    if(!password){
+        return res.status(400).json({message: "Password required."})
+    }
+
+    if(password.length < 8){
+        return res.status(400).json({message: "The password need to have 8 or more caracters."})
+    }
+
+    const salt = await bcrypt.genSalt(12)
+    const passwordHashed = await bcrypt.hash(password, salt)
+
+    try{ 
+
+        let user = await User.updateOne({_id: uid}, {
+            password: passwordHashed
+        })
+
+        return res.status(200).json({message: "Password updated."})
+
+    }catch(err){
+
+        return res.status(400).json({message: "Error while saving password, try again later."})
+    }
+
+})
+
+router.get('/users', authenticateToken, isAdmin, async (req, res) => {
+    
+    try{
+
+        let users = await User.find({}).select('_id name email')
+        return res.status(200).json({users})
+
+    }catch(err){
+
+        return res.status(400).json({message: "Error while getting users, try again later."})
+
+    }
+    
 })
 
 module.exports = router
